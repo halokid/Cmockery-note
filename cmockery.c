@@ -321,7 +321,7 @@ void initialize_testing(const char *test_name) {
     initialize_source_location(&global_last_parameter_location);
 }
 
-
+// TODO
 void fail_if_leftover_values(const char *test_name) {
     int error_occurred = 0;
     remove_always_return_values(&global_function_result_map_head, 1);
@@ -1623,7 +1623,7 @@ int _run_test(
     global_running_test = 1;
     if (setjmp(global_run_test_env) == 0) {
         Function(state ? state : &current_state);
-        fail_if_leftover_values(function_name);
+        fail_if_leftover_values(function_name);     // TODO 关键函数逻辑
 
         /* If this is a setup function then ignore any allocated blocks
          * only ensure they're deallocated on tear down. */
