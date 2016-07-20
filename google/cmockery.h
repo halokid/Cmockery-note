@@ -237,6 +237,7 @@
 #define run_test(f) _run_test(#f, f, NULL, UNIT_TEST_FUNCTION_TYPE_TEST, NULL)
 
 // Initializes a UnitTest structure.
+// 初始化 UnitTest 结构, 具体逻辑在 cmockery.c 
 #define unit_test(f) { #f, f, UNIT_TEST_FUNCTION_TYPE_TEST }
 #define unit_test_setup(test, setup) \
     { #test "_" #setup, setup, UNIT_TEST_FUNCTION_TYPE_SETUP }
@@ -246,6 +247,17 @@
 /* Initialize an array of UnitTest structures with a setup function for a test
  * and a teardown function.  Either setup or teardown can be NULL.
  */
+ 
+ /*
+  unit_test_setup_teardown 配置定义三个函数参数， 这三个参数是整个程序的关键, 三个函数都是唯一一个参数, 类似  key_value_test.c 里面的  **state
+  
+  三个参数都是函数类型
+  test                  要进行单元测试的函数
+  setup                 配置函数， 就是在单元测试函数里面要用到的一些变量的初始化函数, 配置函数等
+  teardown              后续处理函数，就是用进行完单元测试之后， 回收配置函数内存额函数
+  
+ */
+ 
 #define unit_test_setup_teardown(test, setup, teardown) \
     unit_test_setup(test, setup), \
     unit_test(test), \
@@ -330,6 +342,10 @@ typedef enum UnitTestFunctionType {
 /* Stores a unit test function with its name and type.
  * NOTE: Every setup function must be paired with a teardown function.  It's
  * possible to specify NULL function pointers.
+ */
+ 
+ /*
+  储存 单元测试函数， 包含了函数名称， 类型
  */
 typedef struct UnitTest {
     const char* name;

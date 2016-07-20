@@ -55,18 +55,18 @@ WINBASEAPI BOOL WINAPI IsDebuggerPresent(VOID);
 // Size of guard bytes around dynamically allocated blocks.
 #define MALLOC_GUARD_SIZE 16
 // Pattern used to initialize guard blocks.
-#define MALLOC_GUARD_PATTERN 0xEF
+#define MALLOC_GUARD_PATTERN 0xEF							// 类似这种  0xEF, 0xBA 都是一些标点符号的写法，是输出在 consle 中显示的
 // Pattern used to initialize memory allocated with test_malloc().
 #define MALLOC_ALLOC_PATTERN 0xBA
 #define MALLOC_FREE_PATTERN 0xCD
 // Alignment of allocated blocks.  NOTE: This must be base2.
-#define MALLOC_ALIGNMENT sizeof(size_t)
+#define MALLOC_ALIGNMENT sizeof(size_t)					// size_t 是各个平台的大小的基准，用这个来做大小，是为了程序的兼容性, 对应的应该是  unsign int
 
 // Printf formatting for source code locations.
 #define SOURCE_LOCATION_FORMAT "%s:%d"
 
 // Calculates the number of elements in an array.
-#define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
+#define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))			// 计算数组的长度
 
 // Declare and initialize the pointer member of ValuePointer variable name
 // with ptr.
@@ -93,6 +93,7 @@ typedef union ValuePointer {
 } ValuePointer;
 
 // Doubly linked list node.
+// 双链表数据结构
 typedef struct ListNode {
     const void *value;
     int refcount;
@@ -583,6 +584,10 @@ static int get_symbol_value(
  * in each branch that has a refcount < -1 (i.e should always be returned
  * and has been returned at least once).
  */
+ /*
+ TODO
+ 真正的匹配 单元测试 输入/输出 逻辑是在这个函数
+ */
 static void remove_always_return_values(ListNode * const map_head,
                                         const size_t number_of_symbol_names) {
     ListNode *current;
@@ -619,9 +624,12 @@ static void remove_always_return_values(ListNode * const map_head,
 /* Checks if there are any leftover values set up by the test that were never
  * retrieved through execution, and fail the test if that is the case.
  */
+ /*
+ TODO
+ */
 static int check_for_leftover_values(
-        const ListNode * const map_head, const char * const error_message,
-        const size_t number_of_symbol_names) {
+    const ListNode * const map_head, const char * const error_message,
+    const size_t number_of_symbol_names) {
     const ListNode *current;
     int symbols_with_leftover_values = 0;
     assert_true(map_head);
@@ -1573,7 +1581,10 @@ void print_error(const char* const format, ...) {
     va_end(args);
 }
 
-
+// /* TODO
+单元测试的主函数之一， 是单元测试的入口函数， 返回 UnitTest类型
+为执行单元测试的 核心匹配逻辑
+*/
 int _run_test(
         const char * const function_name,  const UnitTestFunction Function,
         void ** const state, const UnitTestFunctionType function_type,
@@ -1603,9 +1614,11 @@ int _run_test(
 #endif // !_WIN32
     }
 
+    // 当类型为 测试函数的时候, 输出提示
     if (function_type == UNIT_TEST_FUNCTION_TYPE_TEST) {
         print_message("%s: Starting test\n", function_name);
     }
+    
     initialize_testing(function_name);
     global_running_test = 1;
     if (setjmp(global_run_test_env) == 0) {
@@ -1648,44 +1661,89 @@ int _run_test(
 }
 
 
+// 运行单元测试的入口函数
+/* 
+  TODO   源码分析主逻辑
+  
+  params:  1, UnitTest 数组
+           2, UnitTest 数组的容量
+           
+  从入口来看，我们最主要是弄清楚 UnitTest类型 和 unit_test 函数的逻辑
+*/
 int _run_tests(const UnitTest * const tests, const size_t number_of_tests) {
     // Whether to execute the next test.
+    // 是否要执行下一个单元测试？？
     int run_next_test = 1;
+    
     // Whether the previous test failed.
+    // 上一个测试是否失败？？
     int previous_test_failed = 0;
+    
     // Check point of the heap state.
     const ListNode * const check_point = check_point_allocated_blocks();
+    
     // Current test being executed.
+    // 当前的单元测试正在执行
     size_t current_test = 0;
+    
     // Number of tests executed.
+    // 一共要执行多少个单元测试
     size_t tests_executed = 0;
+    
     // Number of failed tests.
+    // 有多少个单元测试是失败的
     size_t total_failed = 0;
+    
     // Number of setup functions.
+    // 配置函数的数量
     size_t setups = 0;
+    
     // Number of teardown functions.
+    // 回收配置（内存）函数的数量
     size_t teardowns = 0;
+    
+    
     /* A stack of test states.  A state is pushed on the stack
      * when a test setup occurs and popped on tear down. */
+    // 给测试声明分配内存
     TestState* test_states = malloc(number_of_tests * sizeof(*test_states));
+    
     size_t number_of_test_states = 0;
     // Names of the tests that failed.
-    const char** failed_names = malloc(number_of_tests *
-                                       sizeof(*failed_names));
+    const char** failed_names = malloc(number_of_tests * sizeof(*failed_names));
+    
     void **current_state = NULL;
     // Make sure LargestIntegralType is at least the size of a pointer.
     assert_true(sizeof(LargestIntegralType) >= sizeof(void*));
 
+    /*
+    理解枚举类型的用法:
+    定义了 UnitTestFunctionType function_type, 其中 UnitTestFunctionType 为枚举类型， 定义如下：
+    
+    typedef enum UnitTestFunctionType {
+      UNIT_TEST_FUNCTION_TYPE_TEST = 0,
+      UNIT_TEST_FUNCTION_TYPE_SETUP,
+      UNIT_TEST_FUNCTION_TYPE_TEARDOWN,
+    } UnitTestFunctionType;
+    
+    则  function_type 有可能是 上面三个属性的某个值
+    
+    */
+    //开始循环执行 单元测试 , 递增 current_test 数量检查， 小于单元测试数量执行循环
+    // 无论是进行一个单元测试，还是多个， 都会跑到这个循环
     while (current_test < number_of_tests) {
-        const ListNode *test_check_point = NULL;
+        const ListNode *test_check_point = NULL;      //  test_check_point 为双链表
         TestState *current_TestState;
         const UnitTest * const test = &tests[current_test++];
         if (!test->function) {
             continue;
         }
-
+        
+        /*
+          当是配置函数， 回收函数的时候， 究竟执行了什么逻辑???
+        */
         switch (test->function_type) {
-        case UNIT_TEST_FUNCTION_TYPE_TEST:
+        case UNIT_TEST_FUNCTION_TYPE_TEST:        // 结构体初始化的默认值为0， 默认就是不执行下一个单元测试, 假如要执行下一个的单元测试，这个值要定义成1
             run_next_test = 1;
             break;
         case UNIT_TEST_FUNCTION_TYPE_SETUP: {
@@ -1713,7 +1771,8 @@ int _run_tests(const UnitTest * const tests, const size_t number_of_tests) {
             exit_test(1);
             break;
         }
-
+          
+        //执行单元但是的核心逻辑， 所有的单元测试 输入/输出 匹配逻辑都是在这里执行  _run_test
         if (run_next_test) {
             int failed = _run_test(test->name, test->function, current_state,
                                    test->function_type, test_check_point);
@@ -1749,7 +1808,7 @@ int _run_tests(const UnitTest * const tests, const size_t number_of_tests) {
                 break;
             }
         }
-    }
+    }         // 单元测试循环结束
 
     if (total_failed) {
         size_t i;

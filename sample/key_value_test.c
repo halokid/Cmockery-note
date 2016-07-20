@@ -24,7 +24,21 @@ static KeyValue key_values[] = {
 	{ 13, "is" },
 };
 
-
+/*
+ 理解  **state 的用法
+ 理解双星号 指针的范例程序
+ 
+ -------------------------------------------------------------------------------------
+ char c = 'a';
+ char *p;
+ p = &c;      // 现在 p 里存的就是 c 的地址
+ 
+ char **q;    // q 是 一个二级指针
+ q = &p;      //  q 里存的 是 p 的地址， p 就是如前所述是个整数， 所以 p 占有内存的一块空间， 现在 q 就是指向这个空间的开始
+ 
+ -------------------------------------------------------------------------------------
+ 
+*/
 void create_key_value(void **state) {
 	KeyValue * const items = (KeyValue*)test_malloc(sizeof(key_values));		// give memory to items
 	memcpy(items, key_values, sizeof(key_values));						              // set key_values to items
