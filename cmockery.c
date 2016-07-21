@@ -610,7 +610,7 @@ static void remove_always_return_values(ListNode * const map_head,
                 }
             } else {
                 remove_always_return_values(child_list,
-                                            number_of_symbol_names - 1);
+                                            number_of_symbol_names - 1);    // 递归处理双向链表的数据
             }
         }
 
@@ -1581,7 +1581,7 @@ void print_error(const char* const format, ...) {
     va_end(args);
 }
 
-// /* TODO
+/* TODO
 单元测试的主函数之一， 是单元测试的入口函数， 返回 UnitTest类型
 为执行单元测试的 核心匹配逻辑
 */
