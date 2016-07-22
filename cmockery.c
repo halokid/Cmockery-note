@@ -587,14 +587,21 @@ static int get_symbol_value(
  /*
  TODO
  真正的匹配 单元测试 输入/输出 逻辑是在这个函数
+ 
+ param 1:  ListNode 类型的 map_head
+ param 2:  size_t 类型的 number_of_symbol_names
+ 
+ 核心函数引用的 map_head 是为空的，只是一个空的双链表
  */
 static void remove_always_return_values(ListNode * const map_head,
                                         const size_t number_of_symbol_names) {
-    ListNode *current;
-    assert_true(map_head);
-    assert_true(number_of_symbol_names);
-    current = map_head->next;
-    while (current != map_head) {
+    ListNode *current;                      // 定义 双链表类型 current
+    assert_true(map_head);                  //检查 map_head 是否有值
+    assert_true(number_of_symbol_names);    //检查 number_of_symbol_names 是否有值
+    current = map_head->next;               // 初始化 current 为 map_head 的next
+    
+    while (current != map_head) {           // 循环双链表
+    
         SymbolMapValue * const value = (SymbolMapValue*)current->value;
         ListNode * const next = current->next;
         ListNode *child_list;
@@ -618,7 +625,8 @@ static void remove_always_return_values(ListNode * const map_head,
             list_remove_free(current, free_value, NULL);
         }
         current = next;
-    }
+    
+    } // END WHILE
 }
 
 /* Checks if there are any leftover values set up by the test that were never
