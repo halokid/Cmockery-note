@@ -20,5 +20,12 @@ Cmockery 项目源码学习笔记， 注释流程，架构学习
             C.   核心匹配单元测试 输入/输出 的在两个函数， remove_always_return_values, check_for_leftover_values
                  
                  remove_always_return_values 是把要 单元测试的正确的值写入全局变量当中, 一个双链表的节点的属性
-                 check_for_leftover_values 是把要 单元测试的正确的值写入全局变量当中, 一个双链表的节点的属性
+                 check_for_leftover_values  循环检查语法链， 把链表上的单元测试的用例都检查一次，收集语法链错误信息,写入统一的测试返回信息里面
+                 
+                 
+以上就是 Cmockery 走完一个完整的测试逻辑的过程
+
+
+
+源码理解重点为指针的应用，函数的声明跳转， 其中  remove_always_return_values, check_for_leftover_values 都属于递归函数， 都是以清空整条语法链为最终的停止条件
            
